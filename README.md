@@ -1,2 +1,0 @@
-# smart-contract
-idk man
