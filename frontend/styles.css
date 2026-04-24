@@ -1,0 +1,154 @@
+.container {
+  max-width: 980px;
+  margin: 24px auto;
+  padding: 0 12px 32px;
+  font-family: Inter, Segoe UI, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+h1 {
+  margin-bottom: 6px;
+  font-size: 34px;
+}
+
+.hint {
+  color: #555;
+  margin-top: 0;
+}
+
+code {
+  background: #eef2f7;
+  border-radius: 5px;
+  padding: 2px 6px;
+}
+
+.card {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 14px;
+  background: #fff;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.grid {
+  display: grid;
+  gap: 10px;
+}
+
+.grid.two {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.grid.three {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 15px;
+}
+
+input,
+select,
+button {
+  font-size: 15px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #c9ced6;
+}
+
+button {
+  cursor: pointer;
+  background: #f7f8fa;
+}
+
+button.primary {
+  background: #1e62ff;
+  border-color: #1e62ff;
+  color: #fff;
+  font-weight: 600;
+}
+
+button:hover {
+  filter: brightness(0.97);
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+  font-size: 14px;
+}
+
+.status-box {
+  background: #f7fafc;
+  border: 1px solid #dde4ee;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.roles-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.role-card {
+  border: 1px solid #dde4ee;
+  border-radius: 10px;
+  padding: 12px;
+  background: #fafcff;
+}
+
+.role-card h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.role-address {
+  margin: 6px 0 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  color: #2b3b51;
+  word-break: break-all;
+}
+
+.role-balance {
+  margin: 0 0 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 15px;
+  font-weight: 600;
+  color: #0a7c42;
+}
+
+.seller {
+  border-color: #d6e4ff;
+}
+
+.bidder1 {
+  border-color: #d6efd8;
+}
+
+.bidder2 {
+  border-color: #f6dfbe;
+}
+
+#log {
+  margin: 0;
+  min-height: 120px;
+  max-height: 280px;
+  overflow: auto;
+  background: #10151a;
+  color: #d5e6f7;
+  padding: 10px;
+  border-radius: 8px;
+}

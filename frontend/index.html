@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Auction DApp - Local</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>Auction DApp (Local)</h1>
+      <p class="hint">
+        3 roles: <strong>Seller</strong>, <strong>Bidder 1</strong>, <strong>Bidder 2</strong>.
+        Switch MetaMask account for each role. All transactions go through MetaMask.
+      </p>
+
+      <section class="card">
+        <h2>0) Start here</h2>
+        <p class="hint">
+          Keep <code>npm run node</code> running, then click <strong>Start</strong> to connect MetaMask.
+        </p>
+        <div class="row">
+          <button id="btnStart" class="primary">Start (Auto Setup)</button>
+          <button id="btnReconnect">Reconnect Wallet</button>
+          <button id="btnLoadDeployment">Reload Deployment File</button>
+        </div>
+        <div class="grid two">
+          <label>
+            AuctionFactory address
+            <input id="factoryAddress" placeholder="0x..." />
+          </label>
+          <label>
+            MockNFT address
+            <input id="nftAddress" placeholder="0x..." />
+          </label>
+        </div>
+        <div id="setupStatus" class="mono status-box"></div>
+      </section>
+
+      <section class="card">
+        <h2>1) Assign roles</h2>
+        <p class="hint">
+          Switch MetaMask account, then click assign. Each role needs a different account.
+        </p>
+        <div class="roles-grid">
+          <article class="role-card seller">
+            <h3>Seller</h3>
+            <p class="role-address" id="sellerAddress">Not assigned</p>
+            <p class="role-balance" id="sellerBalance">Balance: —</p>
+            <button id="btnAssignSeller">Assign Current Wallet as Seller</button>
+          </article>
+          <article class="role-card bidder1">
+            <h3>Bidder 1</h3>
+            <p class="role-address" id="bidder1Address">Not assigned</p>
+            <p class="role-balance" id="bidder1Balance">Balance: —</p>
+            <button id="btnAssignBidder1">Assign Current Wallet as Bidder 1</button>
+          </article>
+          <article class="role-card bidder2">
+            <h3>Bidder 2</h3>
+            <p class="role-address" id="bidder2Address">Not assigned</p>
+            <p class="role-balance" id="bidder2Balance">Balance: —</p>
+            <button id="btnAssignBidder2">Assign Current Wallet as Bidder 2</button>
+          </article>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>2) Seller panel</h2>
+        <p class="hint">One-click flow: mint + approve + create auction.</p>
+        <div class="grid three">
+          <label>
+            Token ID
+            <input id="createTokenId" type="number" min="0" value="2" />
+          </label>
+          <label>
+            Starting Price (ETH)
+            <input id="createStartPrice" value="0.1" />
+          </label>
+          <label>
+            Min Increment (ETH)
+            <input id="createMinIncrement" value="0.01" />
+          </label>
+        </div>
+        <div class="grid two">
+          <label>
+            Duration (seconds)
+            <input id="createDuration" type="number" min="1" value="120" />
+          </label>
+        </div>
+        <div class="row">
+          <button id="btnCreateAuction" class="primary">Create Auction</button>
+          <button id="btnRefreshAuctions">Refresh Auctions</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>3) Bidder panels</h2>
+        <div class="roles-grid">
+          <article class="role-card bidder1">
+            <h3>Bidder 1</h3>
+            <label>
+              Select auction
+              <select id="bidder1AuctionSelect"></select>
+            </label>
+            <label>
+              Bid amount (ETH)
+              <input id="bidder1BidAmount" value="0.2" />
+            </label>
+            <button id="btnBidder1Bid" class="primary">Place Bid as Bidder 1</button>
+          </article>
+          <article class="role-card bidder2">
+            <h3>Bidder 2</h3>
+            <label>
+              Select auction
+              <select id="bidder2AuctionSelect"></select>
+            </label>
+            <label>
+              Bid amount (ETH)
+              <input id="bidder2BidAmount" value="0.3" />
+            </label>
+            <button id="btnBidder2Bid" class="primary">Place Bid as Bidder 2</button>
+          </article>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>4) Auction monitor</h2>
+        <div class="row">
+          <select id="monitorAuctionSelect"></select>
+          <button id="btnLoadSelectedAuction">Load Auction Info</button>
+          <button id="btnFastForwardEnd">Fast-forward + End (Local)</button>
+          <button id="btnEndAuction">End Selected Auction</button>
+          <button id="btnWithdraw">Withdraw Pending Refund</button>
+        </div>
+        <div id="auctionInfo" class="mono status-box"></div>
+      </section>
+
+      <section class="card">
+        <h2>Logs / Errors</h2>
+        <pre id="log"></pre>
+      </section>
+    </main>
+
+    <script src="/node_modules/ethers/dist/ethers.umd.min.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
