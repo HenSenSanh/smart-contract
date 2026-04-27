@@ -76,13 +76,14 @@ function updateRoleLabels() {
 }
 
 async function refreshBalances() {
-  const p = state.directRpc || state.provider;
-  if (!p) return;
+  if (!state.provider) return;
   const fmt = (b) => parseFloat(ethers.formatEther(b)).toFixed(4);
   for (const [role, elBal] of [["seller", el.sellerBalance], ["bidder1", el.bidder1Balance], ["bidder2", el.bidder2Balance]]) {
     if (state.roles[role]) {
-      const b = await p.getBalance(state.roles[role]);
-      elBal.textContent = `Balance: ${fmt(b)} ETH`;
+      try {
+        const b = await state.provider.getBalance(state.roles[role]);
+        elBal.textContent = `Balance: ${fmt(b)} ETH`;
+      } catch { /* ignore balance errors */ }
     }
   }
 }
@@ -146,7 +147,12 @@ async function loadAbis() {
 }
 
 async function loadDeployment() {
-  for (const p of ["/cache/deployments/localhost.json", "/cache/deployments/unknown.json"]) {
+  for (const p of [
+    "/cache/deployments/localhost.json",
+    "/cache/deployments/undefined.json",
+    "/cache/deployments/unknown.json",
+    "/cache/deployments/sepolia.json",
+  ]) {
     const r = await fetch(p, { cache: "no-store" });
     if (r.ok) {
       state.deployment = await r.json();
@@ -159,11 +165,31 @@ async function loadDeployment() {
   throw new Error("Deployment missing. Run: npm run deploy:localhost");
 }
 
+async function assertDeployedContract(address, label) {
+  const code = await state.provider.getCode(address);
+  if (!code || code === "0x") {
+    throw new Error(
+      `${label} is not deployed on chain ${state.chainId} at ${address}. ` +
+      `Run: npm run deploy:localhost, then click Reload Deployment File.`
+    );
+  }
+}
+
 async function initContracts() {
+  if (!state.provider || !state.signer) {
+    await connectWallet();
+  }
   await loadAbis();
   const fa = el.factoryAddress.value.trim();
   const na = el.nftAddress.value.trim();
   if (!ethers.isAddress(fa) || !ethers.isAddress(na)) throw new Error("Invalid addresses.");
+  if (state.deployment?.chainId && state.chainId && Number(state.deployment.chainId) !== state.chainId) {
+    throw new Error(
+      `Deployment chainId (${state.deployment.chainId}) does not match MetaMask chain (${state.chainId}).`
+    );
+  }
+  await assertDeployedContract(fa, "AuctionFactory");
+  await assertDeployedContract(na, "MockNFT");
   state.contracts.factory = new ethers.Contract(fa, state.abis.factory, state.signer);
   state.contracts.nft = new ethers.Contract(na, state.abis.nft, state.signer);
 }
@@ -219,7 +245,12 @@ async function createAuctionAsSeller() {
   log(`[Seller] ✓ Auction created (${dur}s)`);
 
   await refreshAuctions();
-  log("Select the new auction in Monitor, then click 'Load Auction Info'.");
+  // Auto-load the newest auction
+  try {
+    const newest = el.monitorAuctionSelect.value;
+    if (ethers.isAddress(newest)) await loadAuctionDetails(newest);
+  } catch { /* ignore if load fails */ }
+  log("✓ Auction ready! Switch MetaMask to Bidder and place bids.");
 }
 
 // ─── Bidder Actions ────────────────────────────────────────────────
@@ -236,9 +267,25 @@ async function placeBid(roleKey, label, sel, amtEl) {
   requireRole(roleKey, label);
 
   const aAddr = getAuctionAddr(sel);
+  await assertDeployedContract(aAddr, "Auction");
   const amt = amtEl.value.trim();
   const val = ethers.parseEther(amt);
   const auction = new ethers.Contract(aAddr, state.abis.auction, state.signer);
+  const [highestBidder, highestBid, startingPrice, minIncrement] = await Promise.all([
+    auction.highestBidder(),
+    auction.highestBid(),
+    auction.startingPrice(),
+    auction.minBidIncrement(),
+  ]);
+  const minRequired = highestBidder === ethers.ZeroAddress
+    ? startingPrice
+    : highestBid + minIncrement;
+  if (val < minRequired) {
+    throw new Error(
+      `Bid too low. Minimum required is ${ethers.formatEther(minRequired)} ETH ` +
+      `(starting price ${ethers.formatEther(startingPrice)} ETH, increment ${ethers.formatEther(minIncrement)} ETH).`
+    );
+  }
 
   log(`[${label}] Bidding ${amt} ETH… (confirm in MetaMask)`);
   await (await auction.bid({ value: val })).wait();
@@ -250,17 +297,17 @@ async function placeBid(roleKey, label, sel, amtEl) {
 
 async function loadAuctionDetails(address) {
   await loadAbis();
-  const p = state.directRpc || state.provider;
-  const auction = new ethers.Contract(address, state.abis.auction, p);
-  const block = await p.getBlock("latest");
+  await assertDeployedContract(address, "Auction");
+  const auction = new ethers.Contract(address, state.abis.auction, state.provider);
+  const block = await state.provider.getBlock("latest");
   const nowTs = Number(block?.timestamp ?? 0);
 
-  let seller, hBidder, hBid, aState, endTime, tokenId, minInc, nftC;
+  let seller, hBidder, hBid, aState, endTime, tokenId, minInc, startPrice, nftC;
   try {
-    [seller, hBidder, hBid, aState, endTime, tokenId, minInc, nftC] = await Promise.all([
+    [seller, hBidder, hBid, aState, endTime, tokenId, minInc, startPrice, nftC] = await Promise.all([
       auction.seller(), auction.highestBidder(), auction.highestBid(),
       auction.state(), auction.endTime(), auction.tokenId(),
-      auction.minBidIncrement(), auction.nftContract(),
+      auction.minBidIncrement(), auction.startingPrice(), auction.nftContract(),
     ]);
   } catch {
     throw new Error("Selected auction data is stale. Click 'Refresh Auctions' then pick the newest one.");
@@ -276,6 +323,7 @@ async function loadAuctionDetails(address) {
   el.auctionInfo.textContent =
     `Auction: ${address}\nState: ${stateText}\nSeller: ${seller}\n` +
     `NFT: ${nftC}  Token: ${tokenId}\n` +
+    `Starting Price: ${ethers.formatEther(startPrice)} ETH\n` +
     `Highest Bidder: ${hBidder}\nHighest Bid: ${ethers.formatEther(hBid)} ETH\n` +
     `Min Increment: ${ethers.formatEther(minInc)} ETH\n` +
     `Ends: ${new Date(endTs * 1000).toLocaleString()}\nRemaining: ${remaining}s`;
@@ -302,7 +350,7 @@ async function endSelectedAuction() {
   const aAddr = getAuctionAddr(el.monitorAuctionSelect);
   const auction = new ethers.Contract(aAddr, state.abis.auction, state.signer);
   const endTime = Number(await auction.endTime());
-  const block = await (state.directRpc || state.provider).getBlock("latest");
+  const block = await state.provider.getBlock("latest");
   const now = Number(block?.timestamp ?? 0);
   if (now < endTime) throw new Error(`Wait ${endTime - now}s or use Fast-forward.`);
 
@@ -314,17 +362,18 @@ async function endSelectedAuction() {
 
 async function fastForwardAndEnd() {
   if (!state.directRpc) throw new Error("Direct RPC not available.");
+  await connectWallet();
+  await loadAbis();
   const aAddr = getAuctionAddr(el.monitorAuctionSelect);
-  const rpc = state.directRpc;
-  const auction = new ethers.Contract(aAddr, state.abis.auction, rpc);
+  const auction = new ethers.Contract(aAddr, state.abis.auction, state.provider);
   const endTime = Number(await auction.endTime());
-  const block = await rpc.getBlock("latest");
+  const block = await state.provider.getBlock("latest");
   const now = Number(block?.timestamp ?? 0);
   const jump = Math.max(1, endTime - now + 1);
 
   log(`Fast-forwarding ${jump}s…`);
-  await rpc.send("evm_increaseTime", [jump]);
-  await rpc.send("evm_mine", []);
+  await state.directRpc.send("evm_increaseTime", [jump]);
+  await state.directRpc.send("evm_mine", []);
   log("✓ Time advanced.");
 
   // Now end via MetaMask
@@ -382,13 +431,12 @@ async function run(fn) {
   try {
     await fn();
     updateSetupStatus();
-    await refreshBalances();
+    try { await refreshBalances(); } catch { /* ignore */ }
   } catch (e) {
     const raw = e?.reason || e?.shortMessage || e?.message || String(e);
-    const msg = String(raw).includes("could not decode result data")
-      ? "Could not read contract data. Click Refresh Auctions and choose a valid auction."
-      : raw;
-    log(`ERROR: ${msg}`);
+    log(`ERROR: ${raw}`);
+    updateSetupStatus();
+    try { await refreshBalances(); } catch { /* ignore */ }
   }
 }
 
