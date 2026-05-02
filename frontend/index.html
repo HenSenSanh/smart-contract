@@ -1,147 +1,710 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Auction DApp - Local</title>
-    <link rel="stylesheet" href="./styles.css" />
-  </head>
-  <body>
-    <main class="container">
-      <h1>Auction DApp (Local)</h1>
-      <p class="hint">
-        3 roles: <strong>Seller</strong>, <strong>Bidder 1</strong>, <strong>Bidder 2</strong>.
-        Switch MetaMask account for each role. All transactions go through MetaMask.
-      </p>
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AuctionDApp | Decentralized NFT Auctions</title>
+  <meta name="description" content="Professional decentralized NFT auction platform powered by Ethereum smart contracts">
 
-      <section class="card">
-        <h2>0) Start here</h2>
-        <p class="hint">
-          Keep <code>npm run node</code> running, then click <strong>Start</strong> to connect MetaMask.
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            slate: { 850: '#151521', 900: '#0f0f1a', 950: '#0a0a0f' },
+            primary: { 50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 300: '#a5b4fc', 400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 800: '#3730a3', 900: '#312e81' },
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+          },
+          animation: {
+            'gradient': 'gradient 8s ease infinite',
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'float': 'float 6s ease-in-out infinite',
+            'shimmer': 'shimmer 2s linear infinite',
+            'fade-in': 'fadeIn 0.5s ease-out forwards',
+            'slide-up': 'slideUp 0.4s ease-out forwards',
+            'scale-in': 'scaleIn 0.3s ease-out forwards',
+          },
+          keyframes: {
+            gradient: {
+              '0%, 100%': { backgroundPosition: '0% 50%' },
+              '50%': { backgroundPosition: '100% 50%' },
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-20px)' },
+            },
+            shimmer: {
+              '0%': { transform: 'translateX(-100%)' },
+              '100%': { transform: 'translateX(100%)' },
+            },
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            slideUp: {
+              '0%': { opacity: '0', transform: 'translateY(20px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+            scaleIn: {
+              '0%': { opacity: '0', transform: 'scale(0.95)' },
+              '100%': { opacity: '1', transform: 'scale(1)' },
+            },
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Ethers.js v6 -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
+
+  <link rel="stylesheet" href="styles.css">
+<base target="_blank">
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen overflow-x-hidden selection:bg-primary-500/30 selection:text-primary-200">
+
+  <!-- Animated Background -->
+  <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+    <div class="absolute -top-40 -left-40 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px] animate-pulse-slow"></div>
+    <div class="absolute top-1/3 -right-40 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[100px] animate-pulse-slow" style="animation-delay: 2s;"></div>
+    <div class="absolute -bottom-40 left-1/3 w-[700px] h-[700px] bg-blue-600/8 rounded-full blur-[130px] animate-pulse-slow" style="animation-delay: 4s;"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] bg-primary-600/5 rounded-full blur-[150px]"></div>
+    <!-- Grid pattern -->
+    <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_80%)]"></div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="fixed top-0 w-full z-50 glass-nav border-b border-white/5 backdrop-blur-xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo -->
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center shadow-lg shadow-primary-500/20">
+            <i data-lucide="gavel" class="w-5 h-5 text-white"></i>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-lg font-bold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">AuctionDApp</span>
+            <span class="text-[10px] text-slate-500 -mt-1 tracking-widest uppercase">Decentralized</span>
+          </div>
+        </div>
+
+        <!-- Center: Network & Status -->
+        <div class="hidden md:flex items-center gap-4">
+          <div id="networkBadge" class="hidden items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800/60 border border-white/5 text-xs font-medium text-slate-400">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="networkName">Not Connected</span>
+          </div>
+          <div id="blockStatus" class="hidden items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800/60 border border-white/5 text-xs font-mono text-slate-400">
+            <i data-lucide="box" class="w-3 h-3"></i>
+            <span id="blockNumber">—</span>
+          </div>
+        </div>
+
+        <!-- Wallet Button -->
+        <div class="flex items-center gap-3">
+          <button id="btnReconnect" class="hidden group relative px-4 py-2 rounded-xl bg-slate-800/60 hover:bg-slate-700/60 border border-white/5 text-sm font-medium text-slate-300 transition-all duration-300 hover:shadow-lg hover:shadow-primary-500/10">
+            <span class="flex items-center gap-2">
+              <i data-lucide="refresh-cw" class="w-4 h-4 group-hover:rotate-180 transition-transform duration-500"></i>
+              <span class="hidden sm:inline">Reconnect</span>
+            </span>
+          </button>
+          <button id="btnConnectWallet" class="group relative px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-500 hover:to-purple-500 text-white text-sm font-semibold shadow-lg shadow-primary-500/25 transition-all duration-300 hover:shadow-primary-500/40 hover:-translate-y-0.5 active:translate-y-0 overflow-hidden">
+            <span class="relative z-10 flex items-center gap-2">
+              <i data-lucide="wallet" class="w-4 h-4"></i>
+              <span id="walletBtnText">Connect Wallet</span>
+            </span>
+            <div class="absolute inset-0 bg-gradient-to-r from-primary-400/20 to-purple-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </button>
+          <div id="walletInfo" class="hidden items-center gap-3 pl-3 border-l border-white/10">
+            <div class="flex flex-col items-end">
+              <span id="walletAddress" class="text-sm font-mono font-medium text-slate-200">0x0000…0000</span>
+              <span id="walletBalance" class="text-xs text-slate-500">0.0000 ETH</span>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 border border-white/10 flex items-center justify-center">
+              <i data-lucide="user" class="w-5 h-5 text-slate-400"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="relative z-10 pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
+
+    <!-- Hero Section -->
+    <section class="relative rounded-3xl overflow-hidden border border-white/5 bg-gradient-to-br from-slate-900/80 via-slate-900/60 to-slate-900/80 backdrop-blur-sm p-8 sm:p-12 lg:p-16">
+      <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50"></div>
+      <div class="relative z-10 max-w-3xl">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-300 text-xs font-semibold uppercase tracking-wider mb-6 animate-fade-in">
+          <span class="w-1.5 h-1.5 rounded-full bg-primary-400 animate-pulse"></span>
+          Web3 Auction Platform
+        </div>
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6 animate-slide-up">
+          <span class="bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">Decentralized</span><br>
+          <span class="bg-gradient-to-r from-primary-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">NFT Auctions</span>
+        </h1>
+        <p class="text-lg text-slate-400 max-w-xl mb-8 leading-relaxed animate-slide-up" style="animation-delay: 0.1s;">
+          Create, bid, and manage NFT auctions securely on the Ethereum blockchain. 
+          Fully transparent, trustless, and powered by smart contracts.
         </p>
-        <div class="row">
-          <button id="btnStart" class="primary">Start (Auto Setup)</button>
-          <button id="btnReconnect">Reconnect Wallet</button>
-          <button id="btnLoadDeployment">Reload Deployment File</button>
+        <div class="flex flex-wrap gap-4 animate-slide-up" style="animation-delay: 0.2s;">
+          <button id="btnStart" class="group px-6 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-500 hover:to-purple-500 text-white font-semibold shadow-lg shadow-primary-500/25 transition-all duration-300 hover:shadow-primary-500/40 hover:-translate-y-0.5 flex items-center gap-2">
+            <i data-lucide="zap" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+            Start Auto Setup
+          </button>
+          <button id="btnLoadDeployment" class="px-6 py-3 rounded-xl bg-slate-800/60 hover:bg-slate-700/60 border border-white/10 text-slate-300 font-medium transition-all duration-300 hover:border-white/20 flex items-center gap-2">
+            <i data-lucide="file-json" class="w-5 h-5"></i>
+            Reload Deployment
+          </button>
         </div>
-        <div class="grid two">
-          <label>
-            AuctionFactory address
-            <input id="factoryAddress" placeholder="0x..." />
-          </label>
-          <label>
-            MockNFT address
-            <input id="nftAddress" placeholder="0x..." />
-          </label>
-        </div>
-        <div id="setupStatus" class="mono status-box"></div>
-      </section>
+      </div>
+      <!-- Decorative floating elements -->
+      <div class="absolute top-12 right-12 w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-500/20 to-purple-500/20 border border-white/10 backdrop-blur-sm animate-float hidden lg:flex items-center justify-center">
+        <i data-lucide="hexagon" class="w-10 h-10 text-primary-400/60"></i>
+      </div>
+      <div class="absolute bottom-12 right-32 w-16 h-16 rounded-xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-white/10 backdrop-blur-sm animate-float hidden lg:flex items-center justify-center" style="animation-delay: 2s;">
+        <i data-lucide="diamond" class="w-8 h-8 text-purple-400/60"></i>
+      </div>
+    </section>
 
-      <section class="card">
-        <h2>1) Assign roles</h2>
-        <p class="hint">
-          Switch MetaMask account, then click assign. Each role needs a different account.
-        </p>
-        <div class="roles-grid">
-          <article class="role-card seller">
-            <h3>Seller</h3>
-            <p class="role-address" id="sellerAddress">Not assigned</p>
-            <p class="role-balance" id="sellerBalance">Balance: —</p>
-            <button id="btnAssignSeller">Assign Current Wallet as Seller</button>
-          </article>
-          <article class="role-card bidder1">
-            <h3>Bidder 1</h3>
-            <p class="role-address" id="bidder1Address">Not assigned</p>
-            <p class="role-balance" id="bidder1Balance">Balance: —</p>
-            <button id="btnAssignBidder1">Assign Current Wallet as Bidder 1</button>
-          </article>
-          <article class="role-card bidder2">
-            <h3>Bidder 2</h3>
-            <p class="role-address" id="bidder2Address">Not assigned</p>
-            <p class="role-balance" id="bidder2Balance">Balance: —</p>
-            <button id="btnAssignBidder2">Assign Current Wallet as Bidder 2</button>
-          </article>
+    <!-- Setup Status Panel -->
+    <section id="setupPanel" class="glass-card rounded-2xl border border-white/5 p-6 animate-fade-in">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-slate-800/80 border border-white/5 flex items-center justify-center">
+            <i data-lucide="settings" class="w-5 h-5 text-primary-400"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-bold text-white">Setup Status</h2>
+            <p class="text-sm text-slate-500">Connection and deployment configuration</p>
+          </div>
         </div>
-      </section>
+        <div id="setupStatusBadge" class="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold">
+          Pending Setup
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="space-y-3">
+          <div class="group">
+            <label class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1.5 block">AuctionFactory Address</label>
+            <div class="relative">
+              <input id="factoryAddress" type="text" placeholder="0x..." readonly
+                class="w-full px-4 py-3 rounded-xl bg-slate-900/60 border border-white/5 text-slate-300 font-mono text-sm focus:outline-none focus:border-primary-500/50 focus:ring-2 focus:ring-primary-500/10 transition-all placeholder:text-slate-600">
+              <div class="absolute right-3 top-1/2 -translate-y-1/2">
+                <div id="factoryStatus" class="w-2 h-2 rounded-full bg-slate-600"></div>
+              </div>
+            </div>
+          </div>
+          <div class="group">
+            <label class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1.5 block">MockNFT Address</label>
+            <div class="relative">
+              <input id="nftAddress" type="text" placeholder="0x..." readonly
+                class="w-full px-4 py-3 rounded-xl bg-slate-900/60 border border-white/5 text-slate-300 font-mono text-sm focus:outline-none focus:border-primary-500/50 focus:ring-2 focus:ring-primary-500/10 transition-all placeholder:text-slate-600">
+              <div class="absolute right-3 top-1/2 -translate-y-1/2">
+                <div id="nftStatus" class="w-2 h-2 rounded-full bg-slate-600"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="rounded-xl bg-slate-900/40 border border-white/5 p-4">
+          <h3 class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-3">Connection Details</h3>
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-400">Account</span>
+              <span id="setupAccount" class="text-sm font-mono text-slate-300">Not connected</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-400">Chain ID</span>
+              <span id="setupChainId" class="text-sm font-mono text-slate-300">—</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-400">Factory</span>
+              <span id="setupFactory" class="text-sm font-mono text-slate-300">—</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-400">MockNFT</span>
+              <span id="setupNft" class="text-sm font-mono text-slate-300">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-      <section class="card">
-        <h2>2) Seller panel</h2>
-        <p class="hint">One-click flow: mint + approve + create auction.</p>
-        <div class="grid three">
-          <label>
-            Token ID
-            <input id="createTokenId" type="number" min="0" value="2" />
-          </label>
-          <label>
-            Starting Price (ETH)
-            <input id="createStartPrice" value="0.1" />
-          </label>
-          <label>
-            Min Increment (ETH)
-            <input id="createMinIncrement" value="0.01" />
-          </label>
+    <!-- Roles Section -->
+    <section class="animate-fade-in">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-slate-800/80 border border-white/5 flex items-center justify-center">
+            <i data-lucide="users" class="w-5 h-5 text-purple-400"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-bold text-white">Role Assignment</h2>
+            <p class="text-sm text-slate-500">Switch MetaMask accounts to assign different roles</p>
+          </div>
         </div>
-        <div class="grid two">
-          <label>
-            Duration (seconds)
-            <input id="createDuration" type="number" min="1" value="120" />
-          </label>
-        </div>
-        <div class="row">
-          <button id="btnCreateAuction" class="primary">Create Auction</button>
-          <button id="btnRefreshAuctions">Refresh Auctions</button>
-        </div>
-      </section>
+        <button id="btnRefreshBalances" class="px-4 py-2 rounded-xl bg-slate-800/60 hover:bg-slate-700/60 border border-white/5 text-slate-400 text-sm transition-all hover:text-white flex items-center gap-2">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+          Refresh Balances
+        </button>
+      </div>
 
-      <section class="card">
-        <h2>3) Bidder panels</h2>
-        <div class="roles-grid">
-          <article class="role-card bidder1">
-            <h3>Bidder 1</h3>
-            <label>
-              Select auction
-              <select id="bidder1AuctionSelect"></select>
-            </label>
-            <label>
-              Bid amount (ETH)
-              <input id="bidder1BidAmount" value="0.2" />
-            </label>
-            <button id="btnBidder1Bid" class="primary">Place Bid as Bidder 1</button>
-          </article>
-          <article class="role-card bidder2">
-            <h3>Bidder 2</h3>
-            <label>
-              Select auction
-              <select id="bidder2AuctionSelect"></select>
-            </label>
-            <label>
-              Bid amount (ETH)
-              <input id="bidder2BidAmount" value="0.3" />
-            </label>
-            <button id="btnBidder2Bid" class="primary">Place Bid as Bidder 2</button>
-          </article>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Seller Card -->
+        <div class="role-card group relative rounded-2xl border border-white/5 bg-gradient-to-b from-slate-900/60 to-slate-900/40 p-6 transition-all duration-300 hover:border-primary-500/30 hover:shadow-lg hover:shadow-primary-500/5">
+          <div class="absolute inset-0 rounded-2xl bg-gradient-to-b from-primary-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500/20 to-primary-600/10 border border-primary-500/20 flex items-center justify-center">
+                  <i data-lucide="store" class="w-6 h-6 text-primary-400"></i>
+                </div>
+                <div>
+                  <h3 class="font-bold text-white">Seller</h3>
+                  <span class="text-xs text-slate-500">Creates auctions</span>
+                </div>
+              </div>
+              <span id="sellerYouBadge" class="hidden px-2 py-0.5 rounded-full bg-primary-500/20 border border-primary-500/30 text-primary-300 text-[10px] font-bold uppercase tracking-wider">You</span>
+            </div>
+            <div class="space-y-3">
+              <div class="rounded-xl bg-slate-950/50 border border-white/5 p-3">
+                <span class="text-[10px] font-medium text-slate-500 uppercase tracking-wider block mb-1">Address</span>
+                <span id="sellerAddress" class="text-sm font-mono text-slate-300 break-all">Not assigned</span>
+              </div>
+              <div class="flex items-center justify-between rounded-xl bg-slate-950/50 border border-white/5 p-3">
+                <span class="text-sm text-slate-400">Balance</span>
+                <span id="sellerBalance" class="text-sm font-mono font-semibold text-emerald-400">—</span>
+              </div>
+              <button id="btnAssignSeller" class="w-full py-2.5 rounded-xl bg-primary-600/20 hover:bg-primary-600/30 border border-primary-500/30 text-primary-300 text-sm font-medium transition-all hover:border-primary-500/50 flex items-center justify-center gap-2">
+                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                Assign Current Wallet
+              </button>
+            </div>
+          </div>
         </div>
-      </section>
 
-      <section class="card">
-        <h2>4) Auction monitor</h2>
-        <div class="row">
-          <select id="monitorAuctionSelect"></select>
-          <button id="btnLoadSelectedAuction">Load Auction Info</button>
-          <button id="btnFastForwardEnd">Fast-forward + End (Local)</button>
-          <button id="btnEndAuction">End Selected Auction</button>
-          <button id="btnWithdraw">Withdraw Pending Refund</button>
+        <!-- Bidder 1 Card -->
+        <div class="role-card group relative rounded-2xl border border-white/5 bg-gradient-to-b from-slate-900/60 to-slate-900/40 p-6 transition-all duration-300 hover:border-emerald-500/30 hover:shadow-lg hover:shadow-emerald-500/5">
+          <div class="absolute inset-0 rounded-2xl bg-gradient-to-b from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border border-emerald-500/20 flex items-center justify-center">
+                  <i data-lucide="hand-coins" class="w-6 h-6 text-emerald-400"></i>
+                </div>
+                <div>
+                  <h3 class="font-bold text-white">Bidder 1</h3>
+                  <span class="text-xs text-slate-500">Places bids</span>
+                </div>
+              </div>
+              <span id="bidder1YouBadge" class="hidden px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold uppercase tracking-wider">You</span>
+            </div>
+            <div class="space-y-3">
+              <div class="rounded-xl bg-slate-950/50 border border-white/5 p-3">
+                <span class="text-[10px] font-medium text-slate-500 uppercase tracking-wider block mb-1">Address</span>
+                <span id="bidder1Address" class="text-sm font-mono text-slate-300 break-all">Not assigned</span>
+              </div>
+              <div class="flex items-center justify-between rounded-xl bg-slate-950/50 border border-white/5 p-3">
+                <span class="text-sm text-slate-400">Balance</span>
+                <span id="bidder1Balance" class="text-sm font-mono font-semibold text-emerald-400">—</span>
+              </div>
+              <button id="btnAssignBidder1" class="w-full py-2.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 text-emerald-300 text-sm font-medium transition-all hover:border-emerald-500/50 flex items-center justify-center gap-2">
+                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                Assign Current Wallet
+              </button>
+            </div>
+          </div>
         </div>
-        <div id="auctionInfo" class="mono status-box"></div>
-      </section>
 
-      <section class="card">
-        <h2>Logs / Errors</h2>
-        <pre id="log"></pre>
-      </section>
-    </main>
+        <!-- Bidder 2 Card -->
+        <div class="role-card group relative rounded-2xl border border-white/5 bg-gradient-to-b from-slate-900/60 to-slate-900/40 p-6 transition-all duration-300 hover:border-amber-500/30 hover:shadow-lg hover:shadow-amber-500/5">
+          <div class="absolute inset-0 rounded-2xl bg-gradient-to-b from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-600/10 border border-amber-500/20 flex items-center justify-center">
+                  <i data-lucide="hand-coins" class="w-6 h-6 text-amber-400"></i>
+                </div>
+                <div>
+                  <h3 class="font-bold text-white">Bidder 2</h3>
+                  <span class="text-xs text-slate-500">Places bids</span>
+                </div>
+              </div>
+              <span id="bidder2YouBadge" class="hidden px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[10px] font-bold uppercase tracking-wider">You</span>
+            </div>
+            <div class="space-y-3">
+              <div class="rounded-xl bg-slate-950/50 border border-white/5 p-3">
+                <span class="text-[10px] font-medium text-slate-500 uppercase tracking-wider block mb-1">Address</span>
+                <span id="bidder2Address" class="text-sm font-mono text-slate-300 break-all">Not assigned</span>
+              </div>
+              <div class="flex items-center justify-between rounded-xl bg-slate-950/50 border border-white/5 p-3">
+                <span class="text-sm text-slate-400">Balance</span>
+                <span id="bidder2Balance" class="text-sm font-mono font-semibold text-emerald-400">—</span>
+              </div>
+              <button id="btnAssignBidder2" class="w-full py-2.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/30 text-amber-300 text-sm font-medium transition-all hover:border-amber-500/50 flex items-center justify-center gap-2">
+                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                Assign Current Wallet
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    <script src="/node_modules/ethers/dist/ethers.umd.min.js"></script>
-    <script src="./app.js"></script>
-  </body>
+    <!-- Auctions Section -->
+    <section class="animate-fade-in">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-slate-800/80 border border-white/5 flex items-center justify-center">
+            <i data-lucide="layout-grid" class="w-5 h-5 text-blue-400"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-bold text-white">Active Auctions</h2>
+            <p class="text-sm text-slate-500">Browse and bid on available NFT auctions</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="btnRefreshAuctions" class="px-4 py-2.5 rounded-xl bg-slate-800/60 hover:bg-slate-700/60 border border-white/5 text-slate-300 text-sm font-medium transition-all hover:border-white/20 flex items-center gap-2">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+            Refresh
+          </button>
+          <button id="btnOpenCreateModal" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-500 hover:to-purple-500 text-white text-sm font-semibold shadow-lg shadow-primary-500/20 transition-all hover:shadow-primary-500/30 hover:-translate-y-0.5 flex items-center gap-2">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            Create Auction
+          </button>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div id="auctionsEmpty" class="flex flex-col items-center justify-center py-20 rounded-2xl border border-dashed border-white/10 bg-slate-900/30">
+        <div class="w-16 h-16 rounded-2xl bg-slate-800/60 border border-white/5 flex items-center justify-center mb-4">
+          <i data-lucide="inbox" class="w-8 h-8 text-slate-600"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-slate-400 mb-1">No auctions found</h3>
+        <p class="text-sm text-slate-600 max-w-sm text-center">Connect your wallet and load deployment to see available auctions, or create a new one.</p>
+      </div>
+
+      <!-- Auctions Grid -->
+      <div id="auctionsGrid" class="hidden grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+
+      <!-- Skeleton Loader -->
+      <div id="auctionsSkeleton" class="hidden grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div class="skeleton-card rounded-2xl border border-white/5 bg-slate-900/40 p-5 h-64 overflow-hidden relative">
+          <div class="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
+        </div>
+        <div class="skeleton-card rounded-2xl border border-white/5 bg-slate-900/40 p-5 h-64 overflow-hidden relative">
+          <div class="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
+        </div>
+        <div class="skeleton-card rounded-2xl border border-white/5 bg-slate-900/40 p-5 h-64 overflow-hidden relative">
+          <div class="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bid Panels -->
+    <section id="bidPanels" class="hidden animate-fade-in">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-10 h-10 rounded-xl bg-slate-800/80 border border-white/5 flex items-center justify-center">
+          <i data-lucide="gavel" class="w-5 h-5 text-emerald-400"></i>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-white">Place Bids</h2>
+          <p class="text-sm text-slate-500">Select an auction and submit your bid</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Bidder 1 Panel -->
+        <div class="glass-card rounded-2xl border border-white/5 p-6">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+              <span class="text-sm font-bold text-emerald-400">B1</span>
+            </div>
+            <div>
+              <h3 class="font-semibold text-white">Bidder 1</h3>
+              <p class="text-xs text-slate-500">Place your bid</p>
+            </div>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2 block">Select Auction</label>
+              <div class="relative">
+                <select id="bidder1AuctionSelect" class="w-full px-4 py-3 rounded-xl bg-slate-950/50 border border-white/5 text-slate-300 text-sm appearance-none focus:outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/10 transition-all">
+                  <option>No auctions available</option>
+                </select>
+                <i data-lucide="chevron-down" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none"></i>
+              </div>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2 block">Bid Increment (ETH)</label>
+              <div class="relative">
+                <input id="bidder1BidAmount" type="number" step="0.001" placeholder="0.00"
+                  class="w-full px-4 py-3 pr-12 rounded-xl bg-slate-950/50 border border-white/5 text-slate-300 text-sm font-mono focus:outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/10 transition-all placeholder:text-slate-600">
+                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-500 font-medium">ETH</span>
+              </div>
+            </div>
+            <button id="btnBidder1Bid" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold shadow-lg shadow-emerald-500/20 transition-all hover:shadow-emerald-500/30 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2">
+              <i data-lucide="arrow-up-circle" class="w-5 h-5"></i>
+              Place Bid
+            </button>
+          </div>
+        </div>
+
+        <!-- Bidder 2 Panel -->
+        <div class="glass-card rounded-2xl border border-white/5 p-6">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+              <span class="text-sm font-bold text-amber-400">B2</span>
+            </div>
+            <div>
+              <h3 class="font-semibold text-white">Bidder 2</h3>
+              <p class="text-xs text-slate-500">Place your bid</p>
+            </div>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2 block">Select Auction</label>
+              <div class="relative">
+                <select id="bidder2AuctionSelect" class="w-full px-4 py-3 rounded-xl bg-slate-950/50 border border-white/5 text-slate-300 text-sm appearance-none focus:outline-none focus:border-amber-500/50 focus:ring-2 focus:ring-amber-500/10 transition-all">
+                  <option>No auctions available</option>
+                </select>
+                <i data-lucide="chevron-down" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none"></i>
+              </div>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2 block">Bid Increment (ETH)</label>
+              <div class="relative">
+                <input id="bidder2BidAmount" type="number" step="0.001" placeholder="0.00"
+                  class="w-full px-4 py-3 pr-12 rounded-xl bg-slate-950/50 border border-white/5 text-slate-300 text-sm font-mono focus:outline-none focus:border-amber-500/50 focus:ring-2 focus:ring-amber-500/10 transition-all placeholder:text-slate-600">
+                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-500 font-medium">ETH</span>
+              </div>
+            </div>
+            <button id="btnBidder2Bid" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-semibold shadow-lg shadow-amber-500/20 transition-all hover:shadow-amber-500/30 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2">
+              <i data-lucide="arrow-up-circle" class="w-5 h-5"></i>
+              Place Bid
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Auction Monitor -->
+    <section id="monitorSection" class="hidden animate-fade-in">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-10 h-10 rounded-xl bg-slate-800/80 border border-white/5 flex items-center justify-center">
+          <i data-lucide="activity" class="w-5 h-5 text-rose-400"></i>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-white">Auction Monitor</h2>
+          <p class="text-sm text-slate-500">Inspect details, end auctions, and manage withdrawals</p>
+        </div>
+      </div>
+
+      <div class="glass-card rounded-2xl border border-white/5 p-6">
+        <div class="flex flex-col lg:flex-row gap-6">
+          <!-- Controls -->
+          <div class="lg:w-80 space-y-4">
+            <div>
+              <label class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2 block">Select Auction</label>
+              <div class="relative">
+                <select id="monitorAuctionSelect" class="w-full px-4 py-3 rounded-xl bg-slate-950/50 border border-white/5 text-slate-300 text-sm appearance-none focus:outline-none focus:border-rose-500/50 focus:ring-2 focus:ring-rose-500/10 transition-all">
+                  <option>No auctions available</option>
+                </select>
+                <i data-lucide="chevron-down" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none"></i>
+              </div>
+            </div>
+            <button id="btnLoadSelectedAuction" class="w-full py-2.5 rounded-xl bg-slate-800/60 hover:bg-slate-700/60 border border-white/5 text-slate-300 text-sm font-medium transition-all hover:border-white/20 flex items-center justify-center gap-2">
+              <i data-lucide="search" class="w-4 h-4"></i>
+              Load Details
+            </button>
+            <div class="h-px bg-white/5"></div>
+            <div class="grid grid-cols-2 gap-3">
+              <button id="btnFastForwardEnd" class="py-2.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/30 text-amber-300 text-sm font-medium transition-all hover:border-amber-500/50 flex items-center justify-center gap-2">
+                <i data-lucide="fast-forward" class="w-4 h-4"></i>
+                Fast Forward
+              </button>
+              <button id="btnEndAuction" class="py-2.5 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/30 text-rose-300 text-sm font-medium transition-all hover:border-rose-500/50 flex items-center justify-center gap-2">
+                <i data-lucide="flag" class="w-4 h-4"></i>
+                End Auction
+              </button>
+            </div>
+            <button id="btnWithdraw" class="w-full py-2.5 rounded-xl bg-slate-800/60 hover:bg-slate-700/60 border border-white/5 text-slate-300 text-sm font-medium transition-all hover:border-white/20 flex items-center justify-center gap-2">
+              <i data-lucide="download" class="w-4 h-4"></i>
+              Withdraw Pending
+            </button>
+          </div>
+
+          <!-- Auction Info Display -->
+          <div class="flex-1">
+            <div id="auctionInfoPanel" class="rounded-xl bg-slate-950/50 border border-white/5 p-6 h-full">
+              <div class="flex flex-col items-center justify-center h-full text-center py-12">
+                <div class="w-16 h-16 rounded-2xl bg-slate-800/60 border border-white/5 flex items-center justify-center mb-4">
+                  <i data-lucide="search" class="w-8 h-8 text-slate-600"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-slate-400 mb-1">No Auction Selected</h3>
+                <p class="text-sm text-slate-600 max-w-xs">Select an auction from the dropdown and click "Load Details" to view information.</p>
+              </div>
+            </div>
+            <div id="auctionInfoContent" class="hidden rounded-xl bg-slate-950/50 border border-white/5 p-6 space-y-4">
+              <!-- Dynamic content inserted here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Logs Panel -->
+    <section class="animate-fade-in">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-slate-800/80 border border-white/5 flex items-center justify-center">
+            <i data-lucide="terminal" class="w-5 h-5 text-slate-400"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-bold text-white">Transaction Logs</h2>
+            <p class="text-sm text-slate-500">Real-time activity and error tracking</p>
+          </div>
+        </div>
+        <button id="btnClearLogs" class="px-3 py-1.5 rounded-lg bg-slate-800/60 hover:bg-slate-700/60 border border-white/5 text-slate-500 text-xs transition-all hover:text-slate-300 flex items-center gap-1.5">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          Clear
+        </button>
+      </div>
+      <div class="relative rounded-2xl bg-slate-950 border border-white/5 overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary-500/30 to-transparent"></div>
+        <pre id="log" class="p-5 font-mono text-sm text-slate-400 max-h-80 overflow-y-auto leading-relaxed scrollbar-thin"></pre>
+        <div class="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-slate-950 to-transparent pointer-events-none"></div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="pt-8 pb-4 border-t border-white/5">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center">
+            <i data-lucide="gavel" class="w-4 h-4 text-white"></i>
+          </div>
+          <span class="text-sm text-slate-500">AuctionDApp — Decentralized NFT Auctions</span>
+        </div>
+        <div class="flex items-center gap-6">
+          <span class="text-xs text-slate-600">Powered by Ethereum & Ethers.js v6</span>
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-xs text-slate-500">Local Network</span>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <!-- Create Auction Modal -->
+  <div id="createAuctionModal" class="fixed inset-0 z-[60] hidden">
+    <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity" onclick="closeModal('createAuctionModal')"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+      <div class="relative w-full max-w-lg rounded-2xl border border-white/10 bg-gradient-to-b from-slate-900 to-slate-950 shadow-2xl shadow-black/50 animate-scale-in">
+        <div class="absolute inset-0 rounded-2xl bg-gradient-to-b from-primary-500/5 to-transparent pointer-events-none"></div>
+        <div class="relative p-6 sm:p-8">
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-primary-500/10 border border-primary-500/20 flex items-center justify-center">
+                <i data-lucide="plus-circle" class="w-5 h-5 text-primary-400"></i>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold text-white">Create Auction</h3>
+                <p class="text-sm text-slate-500">Mint and list a new NFT auction</p>
+              </div>
+            </div>
+            <button onclick="closeModal('createAuctionModal')" class="w-8 h-8 rounded-lg bg-slate-800/60 hover:bg-slate-700/60 border border-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-all">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <div class="space-y-5">
+            <div>
+              <label class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2 block">Token ID</label>
+              <input id="createTokenId" type="number" placeholder="e.g. 1"
+                class="w-full px-4 py-3 rounded-xl bg-slate-950/50 border border-white/5 text-slate-300 text-sm font-mono focus:outline-none focus:border-primary-500/50 focus:ring-2 focus:ring-primary-500/10 transition-all placeholder:text-slate-600">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2 block">Starting Price</label>
+                <div class="relative">
+                  <input id="createStartPrice" type="number" step="0.001" placeholder="0.01"
+                    class="w-full px-4 py-3 pr-12 rounded-xl bg-slate-950/50 border border-white/5 text-slate-300 text-sm font-mono focus:outline-none focus:border-primary-500/50 focus:ring-2 focus:ring-primary-500/10 transition-all placeholder:text-slate-600">
+                  <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-500 font-medium">ETH</span>
+                </div>
+              </div>
+              <div>
+                <label class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2 block">Min Increment</label>
+                <div class="relative">
+                  <input id="createMinIncrement" type="number" step="0.001" placeholder="0.001"
+                    class="w-full px-4 py-3 pr-12 rounded-xl bg-slate-950/50 border border-white/5 text-slate-300 text-sm font-mono focus:outline-none focus:border-primary-500/50 focus:ring-2 focus:ring-primary-500/10 transition-all placeholder:text-slate-600">
+                  <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-500 font-medium">ETH</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2 block">Duration (seconds)</label>
+              <input id="createDuration" type="number" placeholder="e.g. 300"
+                class="w-full px-4 py-3 rounded-xl bg-slate-950/50 border border-white/5 text-slate-300 text-sm font-mono focus:outline-none focus:border-primary-500/50 focus:ring-2 focus:ring-primary-500/10 transition-all placeholder:text-slate-600">
+              <p class="text-xs text-slate-600 mt-1.5">Recommended: 300s (5 min) for testing</p>
+            </div>
+            <button id="btnCreateAuction" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-500 hover:to-purple-500 text-white font-semibold shadow-lg shadow-primary-500/25 transition-all hover:shadow-primary-500/40 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2">
+              <i data-lucide="hammer" class="w-5 h-5"></i>
+              Create Auction
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Auction Detail Modal -->
+  <div id="auctionDetailModal" class="fixed inset-0 z-[60] hidden">
+    <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity" onclick="closeModal('auctionDetailModal')"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+      <div class="relative w-full max-w-2xl rounded-2xl border border-white/10 bg-gradient-to-b from-slate-900 to-slate-950 shadow-2xl shadow-black/50 animate-scale-in max-h-[90vh] overflow-y-auto">
+        <div class="absolute inset-0 rounded-2xl bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none"></div>
+        <div class="relative p-6 sm:p-8">
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                <i data-lucide="eye" class="w-5 h-5 text-blue-400"></i>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold text-white">Auction Details</h3>
+                <p class="text-sm text-slate-500">Complete auction information</p>
+              </div>
+            </div>
+            <button onclick="closeModal('auctionDetailModal')" class="w-8 h-8 rounded-lg bg-slate-800/60 hover:bg-slate-700/60 border border-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-all">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <div id="modalAuctionContent" class="space-y-4">
+            <!-- Dynamic content -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed bottom-6 right-6 z-[70] flex flex-col gap-3 pointer-events-none"></div>
+
+  <script src="app.js"></script>
+</body>
 </html>
